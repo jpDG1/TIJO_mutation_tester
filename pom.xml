@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>pl.edu.atar</groupId>
+    <groupId>io.github.jpdg1</groupId>
     <artifactId>mini-mutation-tester</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 
