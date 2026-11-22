@@ -8,9 +8,7 @@ import org.junit.platform.commons.annotation.Testable;
 import org.opentest4j.AssertionFailedError;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +23,8 @@ final class PriceCalculatorSamples {
 
     static Map<String, String> sources() throws IOException {
         return Map.of(
-                SOURCE_CLASS_NAME, readSample("PriceCalculator.java"),
-                TEST_CLASS_NAME, readSample("PriceCalculatorStrongTest.java")
+                SOURCE_CLASS_NAME, SampleSources.read("PriceCalculator.java"),
+                TEST_CLASS_NAME, SampleSources.read("PriceCalculatorStrongTest.java")
         );
     }
 
@@ -39,14 +37,5 @@ final class PriceCalculatorSamples {
 
     private static Path locationOf(Class<?> type) throws URISyntaxException {
         return Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI());
-    }
-
-    private static String readSample(String filename) throws IOException {
-        try (InputStream stream = PriceCalculatorSamples.class.getResourceAsStream("/samples/" + filename)) {
-            if (stream == null) {
-                throw new IOException("Missing sample file: " + filename);
-            }
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        }
     }
 }
