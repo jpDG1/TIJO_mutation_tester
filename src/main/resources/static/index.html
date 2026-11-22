@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d1117">
+    <title>Mini Mutation Tester</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<header class="app-header">
+    <div class="shell header-content">
+        <div class="identity">
+            <span class="app-mark" aria-hidden="true">&gt;_</span>
+            <div>
+                <h1>Mini Mutation Tester</h1>
+                <p>Find out if your tests really catch bugs</p>
+            </div>
+        </div>
+        <a class="docs-link" href="/swagger-ui.html" target="_blank" rel="noopener">API docs</a>
+    </div>
+</header>
+
+<main class="shell workspace">
+    <section class="panel verification-panel" aria-labelledby="verification-heading">
+        <div class="verification-heading">
+            <h2 id="verification-heading">Project verification</h2>
+            <button id="refresh-verification" class="button" type="button">Refresh results</button>
+        </div>
+        <dl class="metrics verification-metrics">
+            <div>
+                <dt>Unit tests</dt>
+                <dd><span id="project-unit-count">—</span> <small>/ 10 minimum</small></dd>
+                <dd id="project-unit-detail" class="verification-detail"></dd>
+            </div>
+            <div>
+                <dt>Integration tests</dt>
+                <dd><span id="project-integration-count">—</span> <small>/ 10 minimum</small></dd>
+                <dd id="project-integration-detail" class="verification-detail"></dd>
+            </div>
+            <div>
+                <dt>Manual test cases</dt>
+                <dd><span id="project-manual-count">—</span> <small>/ 10 minimum</small></dd>
+                <dd class="verification-detail">Steps ready for a tester</dd>
+            </div>
+        </dl>
+        <p id="verification-note" class="verification-detail" role="status">Loading Maven results…</p>
+        <details class="manual-tests">
+            <summary>View manual test cases</summary>
+            <p>Use the running application. Load the named sample at the start of each case that uses one.</p>
+            <ol id="manual-test-cases">
+                <li><strong>TC001 · Weak tests</strong>
+                    <p>Load the weak sample and run it. Expect 20%, one killed mutant and four survivors.</p></li>
+                <li><strong>TC002 · Strong tests</strong>
+                    <p>Load the strong sample and run it. Expect 100%, five killed mutants and zero survivors.</p></li>
+                <li><strong>TC003 · Empty source</strong>
+                    <p>Press Clear and then Run analysis. Expect an inline message that the source class is required.</p></li>
+                <li><strong>TC004 · Empty test editor</strong>
+                    <p>Load the weak sample, clear the JUnit tests editor and run. Expect an inline message that JUnit tests are required.</p></li>
+                <li><strong>TC005 · Editor size limit</strong>
+                    <p>Load a sample, paste over 128 KiB of text into the source editor and run. Expect an inline size error.</p></li>
+                <li><strong>TC006 · Java syntax error</strong>
+                    <p>Load the weak sample, replace the source with <code>class Broken {</code> and run. Expect the API syntax diagnostic.</p></li>
+                <li><strong>TC007 · Failing baseline</strong>
+                    <p>In the weak sample, change the expected total from 36 to 99 and run. Expect the baseline failure message and an enabled Run analysis button.</p></li>
+                <li><strong>TC008 · Mutant timeout</strong>
+                    <p>Paste <code>InfiniteLoopSource.java</code> and <code>InfiniteLoopTest.java</code> from the project samples and run. Expect a Timed out badge.</p></li>
+                <li><strong>TC009 · Highlight and filter</strong>
+                    <p>Run the weak sample and select Survived. Expect four table rows and four highlighted source lines. Hover a highlighted line to see its mutation.</p></li>
+                <li><strong>TC010 · Analysis progress</strong>
+                    <p>Run the strong sample and watch the log. Expect mutant updates, a final count of 5 / 5 and a report.</p></li>
+                <li><strong>TC011 · Recovery after an error</strong>
+                    <p>After the failure in TC007, load and run the strong sample. Expect the error card to clear and the report to show 100%.</p></li>
+            </ol>
+        </details>
+    </section>
+
+    <section class="panel" aria-labelledby="input-heading">
+        <h2 id="input-heading" class="panel-title">Input</h2>
+        <form id="analysis-form" class="panel-body">
+            <div class="editor-tabs" role="tablist" aria-label="Code editors">
+                <button id="source-tab" class="editor-tab" type="button" role="tab"
+                        aria-controls="source-panel" aria-selected="true">Source class</button>
+                <button id="tests-tab" class="editor-tab" type="button" role="tab"
+                        aria-controls="tests-panel" aria-selected="false" tabindex="-1">JUnit tests</button>
+            </div>
+
+            <div id="source-panel" class="editor-panel" role="tabpanel" aria-labelledby="source-tab">
+                <div class="editor">
+                    <pre id="source-gutter" class="gutter" aria-hidden="true">1</pre>
+                    <textarea id="source-editor" aria-label="Source class code"
+                              aria-describedby="editor-help source-error" placeholder="Paste a complete Java class…"
+                              spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"></textarea>
+                </div>
+                <p id="source-error" class="field-error" hidden></p>
+            </div>
+            <div id="tests-panel" class="editor-panel" role="tabpanel" aria-labelledby="tests-tab" hidden>
+                <div class="editor">
+                    <pre id="tests-gutter" class="gutter" aria-hidden="true">1</pre>
+                    <textarea id="tests-editor" aria-label="JUnit test code"
+                              aria-describedby="editor-help tests-error" placeholder="Paste a JUnit 5 test class…"
+                              spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"></textarea>
+                </div>
+                <p id="tests-error" class="field-error" hidden></p>
+            </div>
+
+            <p id="editor-help" class="editor-help"><kbd>Tab</kbd> inserts spaces. Press <kbd>Esc</kbd> then <kbd>Tab</kbd> to move focus.</p>
+
+            <div class="actions">
+                <button id="run-button" class="button primary-button" type="submit">Run analysis</button>
+                <button id="clear-button" class="button" type="button">Clear</button>
+            </div>
+            <div class="sample-actions">
+                <button id="weak-sample" class="button" type="button">Load sample (weak tests)</button>
+                <button id="strong-sample" class="button" type="button">Load sample (strong tests)</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel" aria-labelledby="analysis-heading">
+        <h2 id="analysis-heading" class="panel-title">Analysis log</h2>
+        <div class="panel-body">
+            <div class="progress-meta">
+                <span id="progress-label" role="status">Ready</span>
+                <span id="progress-count"></span>
+            </div>
+            <progress id="progress-bar" max="1" value="0" aria-label="Analysis progress"></progress>
+            <div class="terminal">
+                <p id="log-empty" class="log-empty">Paste your code and tests, then press Run analysis</p>
+                <ol id="log" class="analysis-log" role="log" aria-label="Analysis events" tabindex="0"></ol>
+            </div>
+
+            <div id="error-card" class="error-card" role="alert" hidden>
+                <h3>Analysis failed</h3>
+                <p id="error-message"></p>
+                <ul id="error-details" hidden></ul>
+            </div>
+
+            <section id="result" class="result" aria-labelledby="result-heading" hidden>
+                <h3 id="result-heading">Analysis result</h3>
+                <div class="summary">
+                    <figure class="score-figure">
+                        <div id="score-gauge" class="score-gauge" role="meter" aria-label="Mutation score"
+                             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <strong id="score">0%</strong>
+                        </div>
+                        <figcaption>Mutation score</figcaption>
+                    </figure>
+                    <dl class="metrics">
+                        <div><dt>Killed</dt><dd id="killed-count">0</dd></div>
+                        <div><dt>Timed out</dt><dd id="timed-out-count">0</dd></div>
+                        <div><dt>Survived</dt><dd id="survived-count">0</dd></div>
+                        <div><dt>Invalid</dt><dd id="invalid-count">0</dd></div>
+                    </dl>
+                </div>
+
+                <section class="result-section" aria-labelledby="mutants-heading">
+                    <h4 id="mutants-heading">Mutants</h4>
+                    <div id="status-filters" class="status-filters" role="group" aria-label="Filter by status">
+                        <button type="button" data-status="ALL" aria-pressed="true">All</button>
+                        <button type="button" data-status="KILLED" aria-pressed="false">Killed</button>
+                        <button type="button" data-status="TIMED_OUT" aria-pressed="false">Timed out</button>
+                        <button type="button" data-status="SURVIVED" aria-pressed="false">Survived</button>
+                        <button type="button" data-status="INVALID" aria-pressed="false">Invalid</button>
+                    </div>
+                    <div class="table-region scroll-region" tabindex="0" role="region" aria-labelledby="mutants-heading">
+                        <table id="mutants-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Mutator</th>
+                                <th scope="col">Line</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id="mutant-rows"></tbody>
+                        </table>
+                    </div>
+                    <p id="mutants-empty" class="mutants-empty" hidden></p>
+                </section>
+
+                <section class="result-section" aria-labelledby="source-heading">
+                    <h4 id="source-heading">Source code</h4>
+                    <p class="source-note">Highlighted lines contain surviving mutants.</p>
+                    <div class="source-region scroll-region" tabindex="0" role="region" aria-labelledby="source-heading">
+                        <ol id="report-source-lines" class="source-lines"></ol>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </section>
+</main>
+</body>
+</html>
